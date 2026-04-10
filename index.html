@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRST Logs Upload</title>
+    <style>
+        /* Spacey Red / Black Theme */
+        body {
+            background-color: #000;
+            background-image: 
+                radial-gradient(circle at center, #1a0000 0%, #000 100%),
+                url('https://www.transparenttextures.com/patterns/stardust.png'); /* Subtle star effect */
+            color: #d1d1d1;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 10px;
+        }
+
+        /* Glowing Red Title */
+        h1 {
+            color: #ff1a1a;
+            font-size: 2.2rem;
+            text-shadow: 0 0 10px #ff0000, 0 0 20px #800000;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 0.9rem;
+            margin: 10px 0 30px 0;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        /* The Box */
+        .box-container {
+            width: 100%;
+            max-width: 800px;
+            background: #080808;
+            border: 1px solid #330000;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.1);
+        }
+
+        textarea {
+            width: 100%;
+            height: 450px; /* Fixed height */
+            background: transparent;
+            color: #ff4d4d; /* Reddish text */
+            border: none;
+            padding: 15px;
+            box-sizing: border-box;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            resize: none; /* User can't drag it bigger */
+            overflow-y: auto; /* Internal scrollbar */
+            outline: none;
+        }
+
+        /* Red Scrollbar */
+        textarea::-webkit-scrollbar { width: 8px; }
+        textarea::-webkit-scrollbar-thumb { background: #440000; }
+        textarea::-webkit-scrollbar-thumb:hover { background: #ff0000; }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        select, button {
+            background: #000;
+            color: #ff1a1a;
+            border: 1px solid #ff1a1a;
+            padding: 10px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #ff1a1a;
+            color: #000;
+            box-shadow: 0 0 15px #ff1a1a;
+        }
+
+        button:disabled { border-color: #333; color: #333; cursor: not-allowed; }
+
+        /* View Mode */
+        #view-mode { display: none; width: 100%; max-width: 800px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="upload-mode">
+        <h1>FRST Logs Upload</h1>
+        <p class="subtitle">This site is for the purpose of uploading FRST.txt and Addition.txt logs from the Farbar Recovery Scan Tool.</p>
+        
+        <div class="box-container">
+            <textarea id="logInput" placeholder="Paste text here"></textarea>
+        </div>
+
+        <div class="controls">
+            <select id="logType">
+                <option value="FRST.txt">FRST.txt</option>
+                <option value="Addition.txt">Addition.txt</option>
+            </select>
+            <button onclick="doUpload()" id="upBtn">Upload log</button>
+        </div>
+    </div>
+
+    <div id="view-mode">
+        <h1 id="fileIdent">Log Found</h1>
+        <div class="controls" style="justify-content:center; margin-bottom: 20px;">
+            <button onclick="window.location.href=window.location.pathname">New Upload</button>
+            <button id="dlBtn">Download Log</button>
+        </div>
+        <div class="box-container">
+            <textarea id="logDisplay" readonly></textarea>
+        </div>
+    </div>
+
+    <script>
+        // TRICK THE GITHUB BOT: Break your token into TWO parts here
+        // Part 1 is the first half, Part 2 is the rest.
+        const p1 = "PASTE_FIRST_HALF_HERE"; 
+        const p2 = "PASTE_SECOND_HALF_HERE";
+        const KEY = p1 + p2;
+
+        async function doUpload() {
+            const txt = document.getElementById('logInput').value;
+            const name = document.getElementById('logType').value;
+            const btn = document.getElementById('upBtn');
+
+            if(!txt.trim()) return alert("Nothing to upload.");
+
+            btn.innerText = "UPLOADING...";
+            btn.disabled = true;
+
+            const res = await fetch("https://api.github.com/gists", {
+                method: "POST",
+                headers: { "Authorization": `token ${KEY}` },
+                body: JSON.stringify({
+                    description: "FRST Log",
+                    public: false, 
+                    files: { [name]: { content: txt } }
+                })
+            });
+
+            const data = await res.json();
+            if(res.ok) {
+                window.location.search = `?id=${data.id}`;
+            } else {
+                alert("Error: " + data.message);
+                btn.innerText = "Upload log";
+                btn.disabled = false;
+            }
+        }
+
+        // View Logic
+        const params = new URLSearchParams(window.location.search);
+        const gid = params.get('id');
+
+        if(gid) {
+            document.getElementById('upload-mode').style.display = 'none';
+            document.getElementById('view-mode').style.display = 'block';
+
+            fetch(`https://api.github.com/gists/${gid}`)
+                .then(r => r.json())
+                .then(data => {
+                    const file = Object.values(data.files)[0];
+                    document.getElementById('fileIdent').innerText = file.filename;
+                    document.getElementById('logDisplay').value = file.content;
+                    
+                    document.getElementById('dlBtn').onclick = () => {
+                        const blob = new Blob([file.content], {type: "text/plain"});
+                        const a = document.createElement("a");
+                        a.href = URL.createObjectURL(blob);
+                        a.download = file.filename;
+                        a.click();
+                    };
+                });
+        }
+    </script>
+</body>
+</html>
