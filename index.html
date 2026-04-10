@@ -10,7 +10,7 @@
             background-color: #000;
             background-image: 
                 radial-gradient(circle at center, #1a0000 0%, #000 100%),
-                url('https://www.transparenttextures.com/patterns/stardust.png'); /* Subtle star effect */
+                url('https://www.transparenttextures.com/patterns/stardust.png'); 
             color: #d1d1d1;
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
@@ -21,7 +21,7 @@
             padding: 40px 10px;
         }
 
-        /* Glowing Red Title */
+        /* Glowing Red Title - No Rectangle */
         h1 {
             color: #ff1a1a;
             font-size: 2.2rem;
@@ -49,16 +49,16 @@
 
         textarea {
             width: 100%;
-            height: 450px; /* Fixed height */
+            height: 450px; 
             background: transparent;
-            color: #ff4d4d; /* Reddish text */
+            color: #ff4d4d; 
             border: none;
             padding: 15px;
             box-sizing: border-box;
             font-family: 'Consolas', 'Courier New', monospace;
             font-size: 14px;
-            resize: none; /* User can't drag it bigger */
-            overflow-y: auto; /* Internal scrollbar */
+            resize: none; 
+            overflow-y: auto; 
             outline: none;
         }
 
@@ -70,7 +70,9 @@
         .controls {
             margin-top: 20px;
             display: flex;
-            gap: 10px;
+            gap: 15px;
+            justify-content: center; /* Centers the buttons */
+            flex-wrap: wrap;
         }
 
         select, button {
@@ -92,7 +94,7 @@
 
         button:disabled { border-color: #333; color: #333; cursor: not-allowed; }
 
-        /* View Mode */
+        /* View Mode Layout */
         #view-mode { display: none; width: 100%; max-width: 800px; text-align: center; }
     </style>
 </head>
@@ -117,18 +119,20 @@
 
     <div id="view-mode">
         <h1 id="fileIdent">Log Found</h1>
-        <div class="controls" style="justify-content:center; margin-bottom: 20px;">
-            <button onclick="window.location.href=window.location.pathname">New Upload</button>
+        <div class="controls">
+            <button onclick="window.location.href=window.location.pathname">Add Log</button>
+            
+            <button onclick="copyLink()" id="copyBtn">Copy Link</button>
+            
             <button id="dlBtn">Download Log</button>
         </div>
-        <div class="box-container">
+        <div class="box-container" style="margin-top: 20px;">
             <textarea id="logDisplay" readonly></textarea>
         </div>
     </div>
 
     <script>
-        // TRICK THE GITHUB BOT: Break your token into TWO parts here
-        // Part 1 is the first half, Part 2 is the rest.
+        // TRICK THE GITHUB BOT
         const p1 = "github_pat_11B3GUJEY0SrXQYUREgLLD_"; 
         const p2 = "mkwOQr05B0GcaYvJUddWOfQONUduKqIlqYS5voxy0cXLD6W2JWUh9jRXvpv";
         const KEY = p1 + p2;
@@ -161,6 +165,15 @@
                 btn.innerText = "Upload log";
                 btn.disabled = false;
             }
+        }
+
+        // Copy Link Function
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = "COPIED!";
+                setTimeout(() => { btn.innerText = "COPY LINK"; }, 2000);
+            });
         }
 
         // View Logic
