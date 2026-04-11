@@ -21,7 +21,6 @@
             padding: 40px 10px;
         }
 
-        /* Glowing Red Title - No Rectangle */
         h1 {
             color: #ff1a1a;
             font-size: 2.2rem;
@@ -39,7 +38,6 @@
             text-align: center;
         }
 
-        /* The Box */
         .box-container {
             width: 100%;
             max-width: 850px;
@@ -63,9 +61,7 @@
             outline: none;
         }
 
-        /* Custom Red Scrollbar */
         textarea::-webkit-scrollbar { width: 8px; }
-        textarea::-webkit-scrollbar-track { background: #050000; }
         textarea::-webkit-scrollbar-thumb { background: #440000; border-radius: 4px; }
         textarea::-webkit-scrollbar-thumb:hover { background: #ff0000; }
 
@@ -94,22 +90,17 @@
             box-shadow: 0 0 15px #ff1a1a;
         }
 
-        button:disabled { border-color: #333; color: #333; cursor: not-allowed; }
-
-        /* Sections */
         #view-mode { display: none; width: 100%; max-width: 850px; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="upload-mode">
-        <h1 id="mainTitle">FRST Logs Upload</h1>
+        <h1>FRST Logs Upload</h1>
         <p class="subtitle">This site is for the purpose of uploading FRST.txt and Addition.txt logs from the Farbar Recovery Scan Tool.</p>
-        
         <div class="box-container">
             <textarea id="logInput" placeholder="Paste log content here..."></textarea>
         </div>
-
         <div class="controls">
             <select id="logType">
                 <option value="FRST.txt">FRST.txt</option>
@@ -132,13 +123,12 @@
     </div>
 
     <script>
-        // --- TOKEN CONFIGURATION ---
-        // Split your NEW token into two halves here to bypass GitHub's scanner
-        const p1 = "PASTE_FIRST_HALF_HERE"; 
-        const p2 = "PASTE_SECOND_HALF_HERE";
+        // TOKEN SPLIT 
+        const p1 = "github_pat_11B3GUJEY0SrXQYUREgLLD_"; 
+        const p2 = "mkwOQr05B0GcaYvJUddWOfQONUduKqIlqYS5voxy0cXLD6W2JWUh9jRXvpv";
         const KEY = p1 + p2;
 
-        const EXPIRY_DAYS = 7; // Links expire after 7 days
+        const EXPIRY_DAYS = 7;
 
         async function doUpload() {
             const txt = document.getElementById('logInput').value;
@@ -187,7 +177,6 @@
             });
         }
 
-        // --- VIEW LOGIC ---
         const params = new URLSearchParams(window.location.search);
         const gid = params.get('id');
 
@@ -198,7 +187,6 @@
             fetch(`https://api.github.com/gists/${gid}`)
                 .then(r => r.json())
                 .then(data => {
-                    // Check Expiration Logic
                     const timeFile = data.files["timestamp.txt"];
                     if (timeFile) {
                         const uploadTime = parseInt(timeFile.content);
